@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const User = require("../models/User");
 const HttpError = require("../models/HttpError");
 
 exports.getProducts = async (req, res, next) => {
@@ -32,7 +33,19 @@ exports.getProductDetail = async (req, res, next) => {
 
 exports.addToCart = async (req, res, next) => {};
 
-exports.getCart = async (req, res, next) => {};
+exports.getCart = async (req, res, next) => {
+  let user;
+  try {
+    user = await User.findById(req.userData.userId).populate("cart");
+    if (!user) {
+      return next(new HttpError("Failed to find current user.", 404));
+    }
+  } catch (err) {
+    return next(err);
+  }
+
+  res.json({ cart: user.cart });
+};
 
 exports.getCheckout = async (req, res, next) => {};
 

@@ -3,7 +3,6 @@ const { check } = require("express-validator");
 
 const fileUpload = require("../middleware/file-upload");
 const checkAuth = require("../middleware/check-auth");
-
 const sellerController = require("../controllers/seller-controller");
 
 const router = express.Router();
@@ -24,5 +23,7 @@ router.post(
 );
 
 router.get("/my-products", sellerController.getProductsById);
+
+router.delete("/:productId", sellerController.deleteProduct);
 
 module.exports = router;

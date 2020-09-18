@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const fs = require("fs");
 
 const Product = require("../models/Product");
 const User = require("../models/User");
@@ -71,6 +72,41 @@ exports.getProductsById = async (req, res, next) => {
 
 exports.updateProduct = async (req, res, next) => {};
 
-exports.deleteProduct = async (req, res, next) => {};
+exports.deleteProduct = async (req, res, next) => {
+  const { productId } = req.params;
+  try {
+    const product = await Product.findById(productId).populate("seller");
+
+    if (!product) {
+      return next(new HttpError("Failed to find product.", 404));
+    }
+    
+    if (product.seller._id.toString() !== req.userData.userId.toString()) {
+      return next(new HttpError("Not allowed access.", 401));
+    }
+
+    const productImages = product.images;
+
+    // Delete product from user
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    await product.remove({ session });
+    product.seller.products.pull(product);
+    await product.seller.save({ session });
+    await session.commitTransaction();
+
+    // Delete product from cart
+
+    // Delete images
+    productImages.forEach((image) => {
+      const imagePath = image.split(process.env.SERVER_URL + "/")[1];
+      fs.unlink(imagePath, (err) => console.log(err));
+    });
+  } catch (err) {
+    return next(err);
+  }
+
+  res.json({ message: "Product deleted." });
+};
 
 exports.sendMessageToCustomer = async (req, res, next) => {};
