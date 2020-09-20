@@ -1,11 +1,23 @@
 const mongoose = require("mongoose");
 const fs = require("fs");
+const { validationResult } = require("express-validator");
 
 const Product = require("../models/Product");
 const User = require("../models/User");
-const { validationResult } = require("express-validator");
-
 const HttpError = require("../models/HttpError");
+
+exports.getMyProducts = async (req, res, next) => {
+  let userWithProducts;
+  try {
+    userWithProducts = await User.findById(req.userData.userId).populate(
+      "products"
+    );
+  } catch (err) {
+    return next(err);
+  }
+
+  res.json({ products: userWithProducts.products });
+};
 
 exports.addProduct = async (req, res, next) => {
   const errors = validationResult(req);
@@ -15,8 +27,8 @@ exports.addProduct = async (req, res, next) => {
       new HttpError("Invalid input passed, please check your data.", 422)
     );
   }
-
-  const { title, price, description, category } = req.body;
+  
+  const { title, price, category, description } = req.body;
 
   const productImages = [];
   req.files.forEach((image) =>
@@ -54,23 +66,43 @@ exports.addProduct = async (req, res, next) => {
     return next(err);
   }
 
-  res.status(201).json({ product });
+  res.status(201).json({ message: "Product created." });
 };
 
-exports.getProductsById = async (req, res, next) => {
-  let userWithProducts;
-  try {
-    userWithProducts = await User.findById(req.userData.userId).populate(
-      "products"
+exports.updateProduct = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(
+      new HttpError("Invalid input passed, please check your data.", 422)
     );
+  }
+  const { productId } = req.params;
+  const { title, price, category, description } = req.body;
+
+  try {
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return next(new HttpError("Failed to find product.", 404));
+    }
+
+    if (product.seller.toString() !== req.userData.userId.toString()) {
+      return next(new HttpError("Not allowed access.", 401));
+    }
+
+    product.title = title;
+    product.price = price;
+    product.category = category;
+    product.description = description;
+
+    await product.save();
   } catch (err) {
     return next(err);
   }
 
-  res.json({ products: userWithProducts.products });
+  res.json({ message: "Product updated." });
 };
-
-exports.updateProduct = async (req, res, next) => {};
 
 exports.deleteProduct = async (req, res, next) => {
   const { productId } = req.params;
@@ -80,7 +112,7 @@ exports.deleteProduct = async (req, res, next) => {
     if (!product) {
       return next(new HttpError("Failed to find product.", 404));
     }
-    
+
     if (product.seller._id.toString() !== req.userData.userId.toString()) {
       return next(new HttpError("Not allowed access.", 401));
     }

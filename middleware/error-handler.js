@@ -2,13 +2,13 @@ const fs = require("fs");
 
 const errorHandler = (error, req, res, next) => {
   if (req.files) {
-    req.files.forEach((file) => fs.unlink(file.path, (err) => console.log(err)));
+    req.files.forEach((file) => fs.unlink(file.path, () => {}));
   }
   if (req.file) {
-    fs.unlink(req.file.path, (err) => console.log(err));
+    fs.unlink(req.file.path, () => {});
   }
 
-  if (res.headerSent) {
+  if (res.headersSent) {
     return next(error);
   }
   res
