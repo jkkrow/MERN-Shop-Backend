@@ -13,6 +13,7 @@ exports.getMyProducts = async (req, res, next) => {
       "products"
     );
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 
@@ -27,7 +28,7 @@ exports.addProduct = async (req, res, next) => {
       new HttpError("Invalid input passed, please check your data.", 422)
     );
   }
-  
+
   const { title, price, category, description } = req.body;
 
   const productImages = [];
@@ -63,6 +64,7 @@ exports.addProduct = async (req, res, next) => {
     await user.save({ session });
     await session.commitTransaction();
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 
@@ -98,6 +100,7 @@ exports.updateProduct = async (req, res, next) => {
 
     await product.save();
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 
@@ -135,6 +138,7 @@ exports.deleteProduct = async (req, res, next) => {
       fs.unlink(imagePath, (err) => console.log(err));
     });
   } catch (err) {
+    console.log(err);
     return next(err);
   }
 
