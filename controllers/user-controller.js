@@ -33,11 +33,28 @@ exports.getProductDetail = async (req, res, next) => {
   res.json({ product });
 };
 
+exports.getCart = async (req, res, next) => {
+  let user;
+  try {
+    user = await User.findById(req.userData.userId).populate("cart.product");
+    if (!user) {
+      return next(new HttpError("Failed to find current user.", 404));
+    }
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ cart: user.cart });
+};
+
 exports.addToCart = async (req, res, next) => {
   const { item, quantity } = req.body;
   let user;
   try {
-    user = await await User.findById(req.userData.userId).populate('cart.product');
+    user = await await User.findById(req.userData.userId).populate(
+      "cart.product"
+    );
     const items = user.cart;
     let newCart = [...items];
     const index = items.findIndex(
@@ -59,13 +76,16 @@ exports.addToCart = async (req, res, next) => {
   res.json({ cart: user.cart });
 };
 
-exports.getCart = async (req, res, next) => {
+exports.removeFromCart = async (req, res, next) => {
+  const { productId } = req.params;
   let user;
   try {
-    user = await User.findById(req.userData.userId).populate('cart.product');
-    if (!user) {
-      return next(new HttpError("Failed to find current user.", 404));
-    }
+    user = await User.findById(req.userData.userId).populate("cart.product");
+    const newCart = user.cart.filter(
+      (item) => item.product._id.toString() !== productId.toString()
+    );
+    user.cart = newCart;
+    await user.save();
   } catch (err) {
     console.log(err);
     return next(err);

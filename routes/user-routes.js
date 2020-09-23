@@ -11,7 +11,8 @@ router.get("/detail/:productId", userController.getProductDetail);
 // Need an authorization
 router.use(checkAuth);
 
-router.post("/add-to-cart", userController.addToCart);
 router.get("/cart", userController.getCart);
+router.post("/add-to-cart", userController.addToCart);
+router.delete("/remove-from-cart/:productId", userController.removeFromCart);
 
 module.exports = router;

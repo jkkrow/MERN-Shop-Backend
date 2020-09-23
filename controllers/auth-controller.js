@@ -134,8 +134,6 @@ exports.googleLogin = async (req, res, next) => {
   });
 };
 
-exports.logout = async (req, res, next) => {};
-
 exports.newPassword = async (req, res, next) => {};
 
 exports.deleteAccount = async (req, res, next) => {};
