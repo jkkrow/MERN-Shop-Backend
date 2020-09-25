@@ -13,6 +13,7 @@ router.use(checkAuth);
 
 router.get("/cart", userController.getCart);
 router.post("/add-to-cart", userController.addToCart);
+router.post("/change-quantity", userController.changeQuantity);
 router.delete("/remove-from-cart/:productId", userController.removeFromCart);
 
 module.exports = router;

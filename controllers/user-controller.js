@@ -37,6 +37,9 @@ exports.getCart = async (req, res, next) => {
   let user;
   try {
     user = await User.findById(req.userData.userId).populate("cart.product");
+    const filteredCart = user.cart.filter((item) => item.product !== null);
+    user.cart = filteredCart;
+    await user.save();
     if (!user) {
       return next(new HttpError("Failed to find current user.", 404));
     }
@@ -67,6 +70,26 @@ exports.addToCart = async (req, res, next) => {
       newCart.push({ product: item, quantity });
     }
     user.cart = newCart;
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ cart: user.cart });
+};
+
+exports.changeQuantity = async (req, res, next) => {
+  const { productId, quantity } = req.body;
+  let user;
+  try {
+    user = await User.findById(req.userData.userId).populate("cart.product");
+    const updatedCart = [...user.cart];
+    const updatedItemIndex = updatedCart.findIndex(
+      (item) => item.product._id.toString() === productId.toString()
+    );
+    updatedCart[updatedItemIndex].quantity = quantity;
+    user.cart = updatedCart;
     await user.save();
   } catch (err) {
     console.log(err);
