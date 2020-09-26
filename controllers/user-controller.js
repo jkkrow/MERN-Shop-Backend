@@ -51,13 +51,40 @@ exports.getCart = async (req, res, next) => {
   res.json({ cart: user.cart });
 };
 
+exports.moveItems = async (req, res, next) => {
+  const { cart } = req.body;
+  let newCart;
+  try {
+    const user = await User.findById(req.userData.userId).populate(
+      "cart.product"
+    );
+    const items = user.cart;
+    newCart = [...items];
+    for (let item of cart) {
+      const index = items.findIndex(
+        (i) => i.product._id.toString() === item.product._id.toString()
+      );
+      if (index !== -1) {
+        const newQuantity = items[index].quantity + item.quantity;
+        newCart[index].quantity = newQuantity;
+      } else {
+        newCart.push({ product: item.product, quantity: item.quantity });
+      }
+    }
+    await User.findByIdAndUpdate(req.userData.userId, { cart: newCart });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ cart: newCart });
+};
+
 exports.addToCart = async (req, res, next) => {
   const { item, quantity } = req.body;
   let user;
   try {
-    user = await await User.findById(req.userData.userId).populate(
-      "cart.product"
-    );
+    user = await User.findById(req.userData.userId).populate("cart.product");
     const items = user.cart;
     let newCart = [...items];
     const index = items.findIndex(

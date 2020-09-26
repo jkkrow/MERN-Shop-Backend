@@ -12,6 +12,7 @@ router.get("/detail/:productId", userController.getProductDetail);
 router.use(checkAuth);
 
 router.get("/cart", userController.getCart);
+router.post('/move-items', userController.moveItems)
 router.post("/add-to-cart", userController.addToCart);
 router.post("/change-quantity", userController.changeQuantity);
 router.delete("/remove-from-cart/:productId", userController.removeFromCart);
