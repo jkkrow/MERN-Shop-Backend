@@ -6,6 +6,7 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const HttpError = require("../models/HttpError");
 
+
 exports.getMyProducts = async (req, res, next) => {
   let userWithProducts;
   try {

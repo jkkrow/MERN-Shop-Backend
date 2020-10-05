@@ -66,8 +66,7 @@ exports.login = async (req, res, next) => {
 
     token = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_KEY,
-      { expiresIn: "1d" }
+      process.env.JWT_KEY
     );
   } catch (err) {
     return next(new HttpError("Logging in failed, please try again.", 500));
@@ -115,10 +114,7 @@ exports.googleLogin = async (req, res, next) => {
 
     token = jwt.sign(
       { userId: user._id, email: user.email },
-      process.env.JWT_KEY,
-      {
-        expiresIn: "1d",
-      }
+      process.env.JWT_KEY
     );
   } catch (err) {
     return next(new HttpError("Google login failed, please try again.", 500));
