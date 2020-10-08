@@ -2,6 +2,8 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const HttpError = require("../models/HttpError");
 
+// Product
+
 exports.getProducts = async (req, res, next) => {
   let products;
   try {
@@ -32,6 +34,8 @@ exports.getProductDetail = async (req, res, next) => {
 
   res.json({ product });
 };
+
+// Cart
 
 exports.getCart = async (req, res, next) => {
   let user;
@@ -142,6 +146,79 @@ exports.removeFromCart = async (req, res, next) => {
   }
 
   res.json({ cart: user.cart });
+};
+
+// Address
+
+exports.getAddresses = async (req, res, next) => {
+  let user;
+  try {
+    user = await User.findById(req.userData.userId);
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ addresses: user.addresses });
+};
+
+exports.addAddress = async (req, res, next) => {
+  const { address, city, postalCode, country } = req.body;
+
+  let user;
+  try {
+    user = await User.findById(req.userData.userId);
+    user.addresses.push({ address, city, postalCode, country });
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.status(201).json({ addresses: user.addresses });
+};
+
+exports.editAddress = async (req, res, next) => {
+  const { addressId } = req.params;
+  const { address, city, postalCode, country } = req.body;
+
+  let user;
+  try {
+    user = await User.findById(req.userData.userId);
+    const matchedAddress = user.addresses.find(
+      (address) => address._id.toString() === addressId
+    );
+    console.log(matchedAddress);
+    matchedAddress.address = address;
+    matchedAddress.city = city;
+    matchedAddress.postalCode = postalCode;
+    matchedAddress.country = country;
+
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ addresses: user.addresses });
+};
+
+exports.deleteAddress = async (req, res, next) => {
+  const { addressId } = req.params;
+
+  let user;
+  try {
+    user = await User.findById(req.userData.userId);
+    user.addresses = user.addresses.filter(
+      (address) => address._id.toString() !== addressId.toString()
+    );
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ addresses: user.addresses });
 };
 
 exports.getCheckout = async (req, res, next) => {};
