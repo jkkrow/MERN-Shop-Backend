@@ -188,7 +188,6 @@ exports.editAddress = async (req, res, next) => {
     const matchedAddress = user.addresses.find(
       (address) => address._id.toString() === addressId
     );
-    console.log(matchedAddress);
     matchedAddress.address = address;
     matchedAddress.city = city;
     matchedAddress.postalCode = postalCode;
