@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 
+const CartSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: "Product",
+  },
+  quantity: { type: Number, required: true },
+});
+
 const AddressSchema = new mongoose.Schema({
   address: { type: String, required: true },
   city: { type: String, required: true },
@@ -12,16 +21,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: { type: String, required: true },
   image: { type: String },
-  cart: [
-    {
-      product: {
-        type: mongoose.Types.ObjectId,
-        required: true,
-        ref: "Product",
-      },
-      quantity: { type: Number, required: true },
-    },
-  ],
+  cart: [CartSchema],
   addresses: [AddressSchema],
   products: [{ type: mongoose.Types.ObjectId, required: true, ref: "Product" }],
   messages: [{ type: Object, ref: "Message" }],

@@ -1,5 +1,6 @@
 const Product = require("../models/Product");
 const User = require("../models/User");
+const Order = require("../models/Order");
 const HttpError = require("../models/HttpError");
 
 // Product
@@ -220,11 +221,70 @@ exports.deleteAddress = async (req, res, next) => {
   res.json({ addresses: user.addresses });
 };
 
-exports.getCheckout = async (req, res, next) => {};
+// Order
 
-exports.order = async (req, res, next) => {};
+exports.getOrders = async (req, res, next) => {
+  let orders;
+  try {
+    orders = await Order.find({ user: req.userData.userId });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
 
-exports.getOrders = async (req, res, next) => {};
+  res.json({ orders });
+};
+
+exports.getOrderDetail = async (req, res, next) => {
+  const { orderId } = req.params;
+
+  let order;
+  try {
+    order = await Order.findById(orderId);
+    if (!order) {
+      return next(new HttpError("No Order Found.", 404));
+    }
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ order });
+};
+
+exports.createOrder = async (req, res, next) => {
+  const {
+    orderItems,
+    shippingAddress,
+    payment,
+    itemsPrice,
+    shippingPrice,
+    tax,
+    totalPrice,
+  } = req.body;
+
+  const order = new Order({
+    user: req.userData.userId,
+    orderItems,
+    shippingAddress,
+    payment,
+    itemsPrice,
+    shippingPrice,
+    tax,
+    totalPrice,
+  });
+  try {
+    await order.save();
+    const user = await User.findById(req.userData.userId);
+    user.cart = [];
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.status(201).json({ message: "Ordered Successfully." });
+};
 
 exports.postReview = async (req, res, next) => {};
 

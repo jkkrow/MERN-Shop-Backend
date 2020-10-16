@@ -29,6 +29,12 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use("/api/seller", sellerRoute);
+
+// Paypal config
+app.get("/api/config/paypal", (req, res, next) =>
+  res.json({ clientId: process.env.PAYPAL_CLIENT_ID })
+);
+
 app.use((req, res, next) => {
   throw new HttpError("Could not find this route", 404);
 });
