@@ -9,9 +9,6 @@ exports.getProducts = async (req, res, next) => {
   let products;
   try {
     products = await Product.find();
-    if (!products.length) {
-      return next(new HttpError("No Product Found.", 404));
-    }
   } catch (err) {
     console.log(err);
     return next(err);
@@ -41,7 +38,7 @@ exports.getProductDetail = async (req, res, next) => {
 exports.getCart = async (req, res, next) => {
   let user;
   try {
-    user = await User.findById(req.userData.userId).populate("cart.product");
+    user = await User.findById(req.user.userId).populate("cart.product");
     const filteredCart = user.cart.filter((item) => item.product !== null);
     user.cart = filteredCart;
     await user.save();
@@ -60,7 +57,7 @@ exports.moveItems = async (req, res, next) => {
   const { cart } = req.body;
   let newCart;
   try {
-    const user = await User.findById(req.userData.userId).populate(
+    const user = await User.findById(req.user.userId).populate(
       "cart.product"
     );
     const items = user.cart;
@@ -76,7 +73,7 @@ exports.moveItems = async (req, res, next) => {
         newCart.push({ product: item.product, quantity: item.quantity });
       }
     }
-    await User.findByIdAndUpdate(req.userData.userId, { cart: newCart });
+    await User.findByIdAndUpdate(req.user.userId, { cart: newCart });
   } catch (err) {
     console.log(err);
     return next(err);
@@ -89,7 +86,7 @@ exports.addToCart = async (req, res, next) => {
   const { item, quantity } = req.body;
   let user;
   try {
-    user = await User.findById(req.userData.userId).populate("cart.product");
+    user = await User.findById(req.user.userId).populate("cart.product");
     const items = user.cart;
     let newCart = [...items];
     const index = items.findIndex(
@@ -115,7 +112,7 @@ exports.changeQuantity = async (req, res, next) => {
   const { productId, quantity } = req.body;
   let user;
   try {
-    user = await User.findById(req.userData.userId).populate("cart.product");
+    user = await User.findById(req.user.userId).populate("cart.product");
     const updatedCart = [...user.cart];
     const updatedItemIndex = updatedCart.findIndex(
       (item) => item.product._id.toString() === productId.toString()
@@ -135,7 +132,7 @@ exports.removeFromCart = async (req, res, next) => {
   const { productId } = req.params;
   let user;
   try {
-    user = await User.findById(req.userData.userId).populate("cart.product");
+    user = await User.findById(req.user.userId).populate("cart.product");
     const newCart = user.cart.filter(
       (item) => item.product._id.toString() !== productId.toString()
     );
@@ -154,7 +151,7 @@ exports.removeFromCart = async (req, res, next) => {
 exports.getAddresses = async (req, res, next) => {
   let user;
   try {
-    user = await User.findById(req.userData.userId);
+    user = await User.findById(req.user.userId);
   } catch (err) {
     console.log(err);
     return next(err);
@@ -168,7 +165,7 @@ exports.addAddress = async (req, res, next) => {
 
   let user;
   try {
-    user = await User.findById(req.userData.userId);
+    user = await User.findById(req.user.userId);
     user.addresses.push({ address, city, postalCode, country });
     await user.save();
   } catch (err) {
@@ -185,7 +182,7 @@ exports.editAddress = async (req, res, next) => {
 
   let user;
   try {
-    user = await User.findById(req.userData.userId);
+    user = await User.findById(req.user.userId);
     const matchedAddress = user.addresses.find(
       (address) => address._id.toString() === addressId
     );
@@ -208,7 +205,7 @@ exports.deleteAddress = async (req, res, next) => {
 
   let user;
   try {
-    user = await User.findById(req.userData.userId);
+    user = await User.findById(req.user.userId);
     user.addresses = user.addresses.filter(
       (address) => address._id.toString() !== addressId.toString()
     );
@@ -226,7 +223,7 @@ exports.deleteAddress = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   let orders;
   try {
-    orders = await Order.find({ user: req.userData.userId });
+    orders = await Order.find({ user: req.user.userId });
   } catch (err) {
     console.log(err);
     return next(err);
@@ -264,7 +261,7 @@ exports.createOrder = async (req, res, next) => {
   } = req.body;
 
   const order = new Order({
-    user: req.userData.userId,
+    user: req.user.userId,
     orderItems,
     shippingAddress,
     payment,
@@ -275,7 +272,7 @@ exports.createOrder = async (req, res, next) => {
   });
   try {
     await order.save();
-    const user = await User.findById(req.userData.userId);
+    const user = await User.findById(req.user.userId);
     user.cart = [];
     await user.save();
   } catch (err) {
@@ -290,4 +287,4 @@ exports.postReview = async (req, res, next) => {};
 
 exports.getMessages = async (req, res, next) => {};
 
-exports.sendMessageToSeller = async (req, res, next) => {};
+exports.sendMessageToadmin = async (req, res, next) => {};

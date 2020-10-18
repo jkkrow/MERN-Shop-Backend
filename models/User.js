@@ -21,9 +21,9 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: { type: String, required: true },
   image: { type: String },
+  isAdmin: { type: Boolean, required: true, default: false },
   cart: [CartSchema],
   addresses: [AddressSchema],
-  products: [{ type: mongoose.Types.ObjectId, required: true, ref: "Product" }],
   messages: [{ type: Object, ref: "Message" }],
 });
 

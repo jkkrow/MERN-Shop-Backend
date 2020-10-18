@@ -12,7 +12,6 @@ const ProductSchema = new mongoose.Schema({
   description: { type: String, required: true },
   images: [{ type: String, required: true }],
   category: { type: String, required: true },
-  seller: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
   reviews: [ReviewSchema],
 });
 

@@ -65,7 +65,7 @@ exports.login = async (req, res, next) => {
     }
 
     token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_KEY
     );
   } catch (err) {
@@ -74,8 +74,9 @@ exports.login = async (req, res, next) => {
 
   res.json({
     token: token,
-    userData: {
+    user: {
       userId: user._id,
+      isAdmin: user.isAdmin,
       email: user.email,
       image: user.image,
     },
@@ -100,10 +101,16 @@ exports.googleLogin = async (req, res, next) => {
     }
 
     user = await User.findOne({ email });
+
     if (!user) {
+      const hashedPassword = await bcrypt.hash(
+        uuidv1() + new Date().valueOf(),
+        12
+      );
+
       user = new User({
         email,
-        password: uuidv1() + new Date().valueOf(),
+        password: hashedPassword,
         name,
         image: picture,
         cart: [],
@@ -113,7 +120,7 @@ exports.googleLogin = async (req, res, next) => {
     }
 
     token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, isAdmin: user.isAdmin },
       process.env.JWT_KEY
     );
   } catch (err) {
@@ -122,8 +129,9 @@ exports.googleLogin = async (req, res, next) => {
 
   res.json({
     token: token,
-    userData: {
+    user: {
       userId: user._id,
+      isAdmin: user.isAdmin,
       email: user.email,
       image: user.image,
     },

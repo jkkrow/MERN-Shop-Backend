@@ -1,17 +1,20 @@
 const express = require("express");
 const { check } = require("express-validator");
 
-const sellerController = require("../controllers/seller-controller");
+const adminController = require("../controllers/admin-controller");
 const fileUpload = require("../middleware/file-upload");
 const checkAuth = require("../middleware/check-auth");
+const checkAdmin = require("../middleware/check-admin");
 const HttpError = require("../models/HttpError");
 
 const router = express.Router();
 const upload = fileUpload.array("images", 10);
 
 router.use(checkAuth);
+router.use(checkAdmin);
 
-router.get("/my-products", sellerController.getMyProducts);
+// Product
+router.get("/products", adminController.getProducts);
 
 router.post(
   "/add-product",
@@ -30,7 +33,7 @@ router.post(
     check("category").custom((value) => value !== "undefined"),
     check("images").custom((value, { req }) => req.files.length > 0),
   ],
-  sellerController.addProduct
+  adminController.addProduct
 );
 
 router.patch(
@@ -41,9 +44,14 @@ router.patch(
     check("description").trim().not().isEmpty(),
     check("category").custom((value) => value !== "undefined"),
   ],
-  sellerController.updateProduct
+  adminController.updateProduct
 );
 
-router.delete("/:productId", sellerController.deleteProduct);
+router.delete("/:productId", adminController.deleteProduct);
+
+// User
+
+router.get("/users", adminController.getUsers);
+router.delete("/delete-user/:userId", adminController.deleteUser);
 
 module.exports = router;

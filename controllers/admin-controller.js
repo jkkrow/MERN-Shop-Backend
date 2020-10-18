@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const fs = require("fs");
 const { validationResult } = require("express-validator");
 
@@ -6,19 +5,18 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const HttpError = require("../models/HttpError");
 
+// Product
 
-exports.getMyProducts = async (req, res, next) => {
-  let userWithProducts;
+exports.getProducts = async (req, res, next) => {
+  let products;
   try {
-    userWithProducts = await User.findById(req.userData.userId).populate(
-      "products"
-    );
+    products = await Product.find();
   } catch (err) {
     console.log(err);
     return next(err);
   }
 
-  res.json({ products: userWithProducts.products });
+  res.json({ products });
 };
 
 exports.addProduct = async (req, res, next) => {
@@ -46,24 +44,11 @@ exports.addProduct = async (req, res, next) => {
     description,
     category,
     images: productImages,
-    seller: req.userData.userId,
     reviews: [],
   });
 
   try {
-    // Fetch user
-    const user = await User.findById(req.userData.userId);
-    if (!user) {
-      return next(new HttpError("Failed to find current user.", 404));
-    }
-
-    // Transaction with user model
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    await product.save({ session });
-    user.products.push(product);
-    await user.save({ session });
-    await session.commitTransaction();
+    await product.save();
   } catch (err) {
     console.log(err);
     return next(err);
@@ -90,10 +75,6 @@ exports.updateProduct = async (req, res, next) => {
       return next(new HttpError("Failed to find product.", 404));
     }
 
-    if (product.seller.toString() !== req.userData.userId.toString()) {
-      return next(new HttpError("Not allowed access.", 401));
-    }
-
     product.title = title;
     product.price = price;
     product.category = category;
@@ -111,27 +92,15 @@ exports.updateProduct = async (req, res, next) => {
 exports.deleteProduct = async (req, res, next) => {
   const { productId } = req.params;
   try {
-    const product = await Product.findById(productId).populate("seller");
+    const product = await Product.findById(productId);
 
     if (!product) {
       return next(new HttpError("Failed to find product.", 404));
     }
 
-    if (product.seller._id.toString() !== req.userData.userId.toString()) {
-      return next(new HttpError("Not allowed access.", 401));
-    }
-
     const productImages = product.images;
 
-    // Delete product from user
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    await product.remove({ session });
-    product.seller.products.pull(product);
-    await product.seller.save({ session });
-    await session.commitTransaction();
-
-    // Delete product from cart
+    await product.remove();
 
     // Delete images
     productImages.forEach((image) => {
@@ -144,6 +113,39 @@ exports.deleteProduct = async (req, res, next) => {
   }
 
   res.json({ message: "Product deleted." });
+};
+
+// User
+
+exports.getUsers = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ users });
+};
+
+exports.deleteUser = async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return next(new HttpError("Failed to find user.", 404));
+    }
+
+    await user.remove();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ message: "User deleted." });
 };
 
 exports.sendMessageToCustomer = async (req, res, next) => {};

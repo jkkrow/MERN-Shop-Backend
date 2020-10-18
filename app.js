@@ -3,7 +3,7 @@ const connectDB = require("./config/db");
 
 const authRoute = require("./routes/auth-routes");
 const userRoute = require("./routes/user-routes");
-const sellerRoute = require("./routes/seller-routes");
+const adminRoute = require("./routes/admin-routes");
 const errorHandler = require("./middleware/error-handler");
 const HttpError = require("./models/HttpError");
 
@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
-app.use("/api/seller", sellerRoute);
+app.use("/api/admin", adminRoute);
 
 // Paypal config
 app.get("/api/config/paypal", (req, res, next) =>
