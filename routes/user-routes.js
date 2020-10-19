@@ -22,7 +22,7 @@ router.delete("/remove-from-cart/:productId", userController.removeFromCart);
 // Address
 router.get("/addresses", userController.getAddresses);
 router.post("/add-address", userController.addAddress);
-router.patch("/edit-address/:addressId", userController.editAddress);
+router.patch("/update-address/:addressId", userController.editAddress);
 router.delete("/delete-address/:addressId", userController.deleteAddress);
 
 // Order

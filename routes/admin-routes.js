@@ -17,7 +17,7 @@ router.use(checkAdmin);
 router.get("/products", adminController.getProducts);
 
 router.post(
-  "/add-product",
+  "/create-product",
   (req, res, next) => {
     upload(req, res, (err) => {
       if (err) {
@@ -33,11 +33,11 @@ router.post(
     check("category").custom((value) => value !== "undefined"),
     check("images").custom((value, { req }) => req.files.length > 0),
   ],
-  adminController.addProduct
+  adminController.createProduct
 );
 
 router.patch(
-  "/:productId",
+  "/update-product/:productId",
   [
     check("title").trim().not().isEmpty(),
     check("price").trim().not().isEmpty(),
@@ -47,11 +47,24 @@ router.patch(
   adminController.updateProduct
 );
 
-router.delete("/:productId", adminController.deleteProduct);
+router.delete("/delete-product/:productId", adminController.deleteProduct);
 
 // User
 
 router.get("/users", adminController.getUsers);
+router.get("/user/:userId", adminController.getUser);
+router.patch(
+  "/update-user/:userId",
+  [
+    check("name").trim().not().isEmpty(),
+    check("email").normalizeEmail().isEmail(),
+  ],
+  adminController.updateUser
+);
 router.delete("/delete-user/:userId", adminController.deleteUser);
+
+// Order
+
+router.get("/orders", adminController.getOrders);
 
 module.exports = router;

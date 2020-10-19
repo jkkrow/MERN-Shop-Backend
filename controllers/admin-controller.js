@@ -3,6 +3,7 @@ const { validationResult } = require("express-validator");
 
 const Product = require("../models/Product");
 const User = require("../models/User");
+const Order = require("../models/Order");
 const HttpError = require("../models/HttpError");
 
 // Product
@@ -19,7 +20,7 @@ exports.getProducts = async (req, res, next) => {
   res.json({ products });
 };
 
-exports.addProduct = async (req, res, next) => {
+exports.createProduct = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
@@ -129,6 +130,48 @@ exports.getUsers = async (req, res, next) => {
   res.json({ users });
 };
 
+exports.getUser = async (req, res, next) => {
+  const { userId } = req.params;
+
+  let user;
+  try {
+    user = await User.findById(userId);
+
+    if (!user) {
+      return next(new HttpError("Failed to find user.", 404));
+    }
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ user });
+};
+
+exports.updateUser = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("Please enter valid inputs.", 422));
+  }
+
+  const { userId } = req.params;
+  const { name, email, isAdmin } = req.body;
+  try {
+    const user = await User.findById(userId);
+    user.name = name;
+    user.email = email;
+    user.isAdmin = isAdmin;
+
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ message: "User updated." });
+};
+
 exports.deleteUser = async (req, res, next) => {
   const { userId } = req.params;
 
@@ -146,6 +189,20 @@ exports.deleteUser = async (req, res, next) => {
   }
 
   res.json({ message: "User deleted." });
+};
+
+// Order
+
+exports.getOrders = async (req, res, next) => {
+  let orders;
+  try {
+    orders = await Order.find().populate("user");
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ orders });
 };
 
 exports.sendMessageToCustomer = async (req, res, next) => {};
