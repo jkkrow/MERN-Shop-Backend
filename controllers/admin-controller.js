@@ -205,4 +205,30 @@ exports.getOrders = async (req, res, next) => {
   res.json({ orders });
 };
 
+exports.updateDelivered = async (req, res, next) => {
+  const { orderId } = req.params;
+
+  let order;
+  try {
+    order = await Order.findById(orderId);
+
+    if (!order) {
+      return next(new HttpError("Failed to find order.", 404));
+    }
+
+    if (order.isDelivered) {
+      return next(new HttpError("Delivery state is already changed.", 400));
+    }
+
+    order.isDelivered = true;
+    order.deliveredAt = new Date();
+    await order.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ order });
+};
+
 exports.sendMessageToCustomer = async (req, res, next) => {};

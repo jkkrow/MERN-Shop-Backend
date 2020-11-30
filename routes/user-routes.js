@@ -30,4 +30,7 @@ router.get("/orders", userController.getOrders);
 router.get("/order-detail/:orderId", userController.getOrderDetail);
 router.post("/create-order", userController.createOrder);
 
+// Review
+router.post("/review/:productId", userController.createReview);
+
 module.exports = router;

@@ -21,7 +21,10 @@ exports.getProductDetail = async (req, res, next) => {
   const { productId } = req.params;
   let product;
   try {
-    product = await Product.findById(productId);
+    product = await Product.findById(productId).populate({
+      path: "reviews.user",
+      select: ["name", "image"],
+    });
     if (!product) {
       return next(new HttpError("No Product Found.", 404));
     }
@@ -29,7 +32,7 @@ exports.getProductDetail = async (req, res, next) => {
     console.log(err);
     return next(err);
   }
-
+  
   res.json({ product });
 };
 
@@ -57,9 +60,7 @@ exports.moveItems = async (req, res, next) => {
   const { cart } = req.body;
   let newCart;
   try {
-    const user = await User.findById(req.user.userId).populate(
-      "cart.product"
-    );
+    const user = await User.findById(req.user.userId).populate("cart.product");
     const items = user.cart;
     newCart = [...items];
     for (let item of cart) {
@@ -283,7 +284,51 @@ exports.createOrder = async (req, res, next) => {
   res.status(201).json({ message: "Ordered Successfully." });
 };
 
-exports.postReview = async (req, res, next) => {};
+exports.createReview = async (req, res, next) => {
+  const { productId } = req.params;
+
+  let product;
+  try {
+    const orders = await Order.find({ user: req.user.userId });
+    const order = orders.find((order) =>
+      order.orderItems.find(
+        (item) => item.product.toString() === productId.toString()
+      )
+    );
+
+    if (!order) {
+      return next(
+        new HttpError("This product is not in your order history!", 400)
+      );
+    }
+
+    product = await Product.findById(productId);
+    const alreadyReviewed = product.reviews.find(
+      (review) => review.user.toString() === req.user.userId.toString()
+    );
+
+    if (alreadyReviewed) {
+      return next(new HttpError("Product already reviewed.", 400));
+    }
+    const review = {
+      user: req.user.userId,
+      rating: 5,
+      comment: "Good Product",
+    };
+
+    product.reviews.push(review);
+    product.rating =
+      product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+      product.reviews.length;
+
+    await product.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.status(201).json({ product });
+};
 
 exports.getMessages = async (req, res, next) => {};
 

@@ -66,5 +66,6 @@ router.delete("/delete-user/:userId", adminController.deleteUser);
 // Order
 
 router.get("/orders", adminController.getOrders);
+router.patch('/update-delivered/:orderId', adminController.updateDelivered)
 
 module.exports = router;
