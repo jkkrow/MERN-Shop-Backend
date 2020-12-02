@@ -32,7 +32,7 @@ exports.getProductDetail = async (req, res, next) => {
     console.log(err);
     return next(err);
   }
-  
+
   res.json({ product });
 };
 
@@ -284,8 +284,11 @@ exports.createOrder = async (req, res, next) => {
   res.status(201).json({ message: "Ordered Successfully." });
 };
 
+// Review
+
 exports.createReview = async (req, res, next) => {
   const { productId } = req.params;
+  const { rating, comment } = req.body;
 
   let product;
   try {
@@ -308,12 +311,17 @@ exports.createReview = async (req, res, next) => {
     );
 
     if (alreadyReviewed) {
-      return next(new HttpError("Product already reviewed.", 400));
+      return next(new HttpError("You've already reviewed this product.", 400));
     }
+
+    if (!rating) {
+      return next(new HttpError("Please check the rating."));
+    }
+
     const review = {
       user: req.user.userId,
-      rating: 5,
-      comment: "Good Product",
+      rating,
+      comment,
     };
 
     product.reviews.push(review);
@@ -322,6 +330,11 @@ exports.createReview = async (req, res, next) => {
       product.reviews.length;
 
     await product.save();
+
+    product = await Product.findById(productId).populate({
+      path: "reviews.user",
+      select: ["name", "image"],
+    });
   } catch (err) {
     console.log(err);
     return next(err);
