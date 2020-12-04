@@ -6,9 +6,13 @@ const HttpError = require("../models/HttpError");
 // Product
 
 exports.getProducts = async (req, res, next) => {
+  const keyword = req.query.keyword
+    ? { title: { $regex: req.query.keyword, $options: "i" } }
+    : {};
+
   let products;
   try {
-    products = await Product.find();
+    products = await Product.find({ ...keyword });
   } catch (err) {
     console.log(err);
     return next(err);
