@@ -6,19 +6,25 @@ const HttpError = require("../models/HttpError");
 // Product
 
 exports.getProducts = async (req, res, next) => {
+  const perPage = 5;
+  const page = Number(req.query.page) || 1;
+
   const keyword = req.query.keyword
     ? { title: { $regex: req.query.keyword, $options: "i" } }
     : {};
 
-  let products;
+  let products, count;
   try {
-    products = await Product.find({ ...keyword });
+    count = await Product.countDocuments({ ...keyword });
+    products = await Product.find({ ...keyword })
+      .limit(perPage)
+      .skip(perPage * (page - 1));
   } catch (err) {
     console.log(err);
     return next(err);
   }
 
-  res.json({ products });
+  res.json({ products, page, pages: Math.ceil(count / perPage) });
 };
 
 exports.getProductDetail = async (req, res, next) => {
