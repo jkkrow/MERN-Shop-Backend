@@ -9,15 +9,21 @@ const HttpError = require("../models/HttpError");
 // Product
 
 exports.getProducts = async (req, res, next) => {
-  let products;
+  const perPage = 10;
+  const page = Number(req.query.page) || 1;
+
+  let products, count;
   try {
-    products = await Product.find();
+    count = await Product.countDocuments();
+    products = await Product.find()
+      .limit(perPage)
+      .skip(perPage * (page - 1));
   } catch (err) {
     console.log(err);
     return next(err);
   }
 
-  res.json({ products });
+  res.json({ products, page, pages: Math.ceil(count / perPage) });
 };
 
 exports.createProduct = async (req, res, next) => {

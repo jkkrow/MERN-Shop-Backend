@@ -6,7 +6,7 @@ const HttpError = require("../models/HttpError");
 // Product
 
 exports.getProducts = async (req, res, next) => {
-  const perPage = 3;
+  const perPage = 2;
   const page = Number(req.query.page) || 1;
 
   const keyword = req.query.keyword
