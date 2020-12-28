@@ -17,7 +17,7 @@ router.use(checkAdmin);
 router.get("/products", adminController.getProducts);
 
 router.post(
-  "/create-product",
+  "/add-product",
   (req, res, next) => {
     upload(req, res, (err) => {
       if (err) {
@@ -33,7 +33,7 @@ router.post(
     check("category").custom((value) => value !== "undefined"),
     check("images").custom((value, { req }) => req.files.length > 0),
   ],
-  adminController.createProduct
+  adminController.addProduct
 );
 
 router.patch(

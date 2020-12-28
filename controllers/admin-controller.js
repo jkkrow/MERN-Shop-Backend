@@ -26,7 +26,7 @@ exports.getProducts = async (req, res, next) => {
   res.json({ products, page, pages: Math.ceil(count / perPage) });
 };
 
-exports.createProduct = async (req, res, next) => {
+exports.addProduct = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
@@ -44,7 +44,7 @@ exports.createProduct = async (req, res, next) => {
     )
   );
 
-  // Create product
+  // Add Product
   const product = new Product({
     title,
     price,
@@ -125,15 +125,21 @@ exports.deleteProduct = async (req, res, next) => {
 // User
 
 exports.getUsers = async (req, res, next) => {
-  let users;
+  const perPage = 2;
+  const page = Number(req.query.page) || 1;
+
+  let users, count;
   try {
-    users = await User.find();
+    count = await User.countDocuments();
+    users = await User.find()
+      .limit(perPage)
+      .skip(perPage * (page - 1));
   } catch (err) {
     console.log(err);
     return next(err);
   }
 
-  res.json({ users });
+  res.json({ users, page, pages: Math.ceil(count / perPage) });
 };
 
 exports.getUser = async (req, res, next) => {
@@ -200,15 +206,22 @@ exports.deleteUser = async (req, res, next) => {
 // Order
 
 exports.getOrders = async (req, res, next) => {
-  let orders;
+  const perPage = 1;
+  const page = Number(req.query.page) || 1;
+
+  let orders, count;
   try {
-    orders = await Order.find().populate("user");
+    count = await Order.countDocuments();
+    orders = await Order.find()
+      .limit(perPage)
+      .skip(perPage * (page - 1))
+      .populate("user");
   } catch (err) {
     console.log(err);
     return next(err);
   }
 
-  res.json({ orders });
+  res.json({ orders, page, pages: Math.ceil(count / perPage) });
 };
 
 exports.updateDelivered = async (req, res, next) => {
