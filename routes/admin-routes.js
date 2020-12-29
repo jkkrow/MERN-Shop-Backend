@@ -28,7 +28,9 @@ router.post(
   },
   [
     check("title").trim().not().isEmpty(),
+    check("brand").trim().not().isEmpty(),
     check("price").trim().not().isEmpty(),
+    check("quantity").trim().not().isEmpty(),
     check("description").trim().not().isEmpty(),
     check("category").custom((value) => value !== "undefined"),
     check("images").custom((value, { req }) => req.files.length > 0),
@@ -40,7 +42,9 @@ router.patch(
   "/update-product/:productId",
   [
     check("title").trim().not().isEmpty(),
+    check("brand").trim().not().isEmpty(),
     check("price").trim().not().isEmpty(),
+    check("quantity").trim().not().isEmpty(),
     check("description").trim().not().isEmpty(),
     check("category").custom((value) => value !== "undefined"),
   ],

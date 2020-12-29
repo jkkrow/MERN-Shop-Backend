@@ -11,10 +11,12 @@ const ReviewSchema = new mongoose.Schema(
 
 const ProductSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  brand: { type: String, required: true },
   price: { type: Number, required: true },
   description: { type: String, required: true },
   images: [{ type: String, required: true }],
   category: { type: String, required: true },
+  quantity: { type: Number, required: true },
   reviews: [ReviewSchema],
   rating: { type: Number, required: true, default: 0 },
 });

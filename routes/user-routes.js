@@ -18,6 +18,7 @@ router.post("/move-items", userController.moveItems);
 router.post("/add-to-cart", userController.addToCart);
 router.patch("/change-quantity", userController.changeQuantity);
 router.delete("/remove-from-cart/:productId", userController.removeFromCart);
+router.post("/start-checkout", userController.startCheckout);
 
 // Address
 router.get("/addresses", userController.getAddresses);

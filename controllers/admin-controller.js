@@ -35,8 +35,8 @@ exports.addProduct = async (req, res, next) => {
     );
   }
 
-  const { title, price, category, description } = req.body;
-
+  const { title, brand, price, category, description, quantity } = req.body;
+  
   const productImages = [];
   req.files.forEach((image) =>
     productImages.push(
@@ -47,9 +47,11 @@ exports.addProduct = async (req, res, next) => {
   // Add Product
   const product = new Product({
     title,
+    brand,
     price,
     description,
     category,
+    quantity,
     images: productImages,
     reviews: [],
   });
@@ -73,7 +75,7 @@ exports.updateProduct = async (req, res, next) => {
     );
   }
   const { productId } = req.params;
-  const { title, price, category, description } = req.body;
+  const { title, brand, price, category, description, quantity } = req.body;
 
   try {
     const product = await Product.findById(productId);
@@ -83,9 +85,11 @@ exports.updateProduct = async (req, res, next) => {
     }
 
     product.title = title;
+    product.brand = brand;
     product.price = price;
     product.category = category;
     product.description = description;
+    product.quantity = quantity;
 
     await product.save();
   } catch (err) {
@@ -125,7 +129,7 @@ exports.deleteProduct = async (req, res, next) => {
 // User
 
 exports.getUsers = async (req, res, next) => {
-  const perPage = 2;
+  const perPage = 10;
   const page = Number(req.query.page) || 1;
 
   let users, count;
@@ -206,7 +210,7 @@ exports.deleteUser = async (req, res, next) => {
 // Order
 
 exports.getOrders = async (req, res, next) => {
-  const perPage = 1;
+  const perPage = 10;
   const page = Number(req.query.page) || 1;
 
   let orders, count;

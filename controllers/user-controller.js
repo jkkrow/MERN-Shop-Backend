@@ -157,6 +157,20 @@ exports.removeFromCart = async (req, res, next) => {
   res.json({ cart: user.cart });
 };
 
+exports.startCheckout = async (req, res, next) => {
+  const { cart } = req.body;
+  cart.forEach((item) => {
+    const newAsync = async () => {
+      const stock = (await Product.findById(item.product._id)).quantity;
+      if (stock === 0 || item.quantity > stock) {
+        return next(new HttpError("Can't proceed to checkout", 400));
+      }
+      res.json({ message: "All Clear!" });
+    };
+    newAsync();
+  });
+};
+
 // Address
 
 exports.getAddresses = async (req, res, next) => {
@@ -286,6 +300,14 @@ exports.createOrder = async (req, res, next) => {
     const user = await User.findById(req.user.userId);
     user.cart = [];
     await user.save();
+    orderItems.forEach((item) => {
+      const newAsync = async () => {
+        const product = await Product.findById(item.product);
+        product.quantity -= 1;
+        await product.save();
+      };
+      newAsync();
+    });
   } catch (err) {
     console.log(err);
     return next(err);
