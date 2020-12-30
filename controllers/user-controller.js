@@ -104,7 +104,12 @@ exports.addToCart = async (req, res, next) => {
       (i) => i.product._id.toString() === item._id.toString()
     );
     if (index !== -1) {
-      const newQuantity = items[index].quantity + quantity;
+      let newQuantity;
+      if (item.quantity < items[index].quantity + quantity) {
+        newQuantity = item.quantity;
+      } else {
+        newQuantity = items[index].quantity + quantity;
+      }
       newCart[index].quantity = newQuantity;
     } else {
       newCart.push({ product: item, quantity });
@@ -159,16 +164,18 @@ exports.removeFromCart = async (req, res, next) => {
 
 exports.startCheckout = async (req, res, next) => {
   const { cart } = req.body;
-  cart.forEach((item) => {
-    const newAsync = async () => {
-      const stock = (await Product.findById(item.product._id)).quantity;
-      if (stock === 0 || item.quantity > stock) {
-        return next(new HttpError("Can't proceed to checkout", 400));
-      }
-      res.json({ message: "All Clear!" });
-    };
-    newAsync();
-  });
+
+  for (let i = 0; i < cart.length; i++) {
+    let stock = (await Product.findById(cart[i].product._id)).quantity;
+
+    if (stock === 0 || cart[i].quantity > stock) {
+      return next(
+        new HttpError("Amount of chosen product exceeds current stocks.", 400)
+      );
+    }
+  }
+
+  res.json({ message: "All Clear!" });
 };
 
 // Address
@@ -300,14 +307,12 @@ exports.createOrder = async (req, res, next) => {
     const user = await User.findById(req.user.userId);
     user.cart = [];
     await user.save();
-    orderItems.forEach((item) => {
-      const newAsync = async () => {
-        const product = await Product.findById(item.product);
-        product.quantity -= 1;
-        await product.save();
-      };
-      newAsync();
-    });
+
+    for (let i = 0; i < orderItems.length; i++) {
+      let product = await Product.findById(orderItems[i].product);
+      product.quantity -= 1;
+      await product.save();
+    }
   } catch (err) {
     console.log(err);
     return next(err);
