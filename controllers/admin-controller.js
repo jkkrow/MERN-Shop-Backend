@@ -36,7 +36,7 @@ exports.addProduct = async (req, res, next) => {
   }
 
   const { title, brand, price, category, description, quantity } = req.body;
-  
+
   const productImages = [];
   req.files.forEach((image) =>
     productImages.push(
@@ -136,6 +136,7 @@ exports.getUsers = async (req, res, next) => {
   try {
     count = await User.countDocuments();
     users = await User.find()
+      .sort({ isAdmin: -1, name: 1 })
       .limit(perPage)
       .skip(perPage * (page - 1));
   } catch (err) {
@@ -217,6 +218,7 @@ exports.getOrders = async (req, res, next) => {
   try {
     count = await Order.countDocuments();
     orders = await Order.find()
+      .sort({ createdAt: -1 })
       .limit(perPage)
       .skip(perPage * (page - 1))
       .populate("user");

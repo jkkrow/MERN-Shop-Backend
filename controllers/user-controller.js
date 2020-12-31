@@ -255,7 +255,9 @@ exports.deleteAddress = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   let orders;
   try {
-    orders = await Order.find({ user: req.user.userId });
+    orders = await Order.find({ user: req.user.userId }).sort({
+      createdAt: -1,
+    });
   } catch (err) {
     console.log(err);
     return next(err);
@@ -272,6 +274,13 @@ exports.getOrderDetail = async (req, res, next) => {
     order = await Order.findById(orderId);
     if (!order) {
       return next(new HttpError("No Order Found.", 404));
+    }
+
+    if (
+      !req.user.isAdmin &&
+      order.user.toString() !== req.user.userId.toString()
+    ) {
+      return next(new HttpError("Unavailable access!", 400));
     }
   } catch (err) {
     console.log(err);
