@@ -28,6 +28,7 @@ router.delete("/delete-address/:addressId", userController.deleteAddress);
 
 // Order
 router.get("/orders", userController.getOrders);
+router.post("/more-orders", userController.getMoreOrders);
 router.get("/order-detail/:orderId", userController.getOrderDetail);
 router.post("/create-order", userController.createOrder);
 

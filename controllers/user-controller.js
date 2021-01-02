@@ -253,17 +253,41 @@ exports.deleteAddress = async (req, res, next) => {
 // Order
 
 exports.getOrders = async (req, res, next) => {
+  const perPage = 3;
   let orders;
   try {
-    orders = await Order.find({ user: req.user.userId }).sort({
-      createdAt: -1,
-    });
+    count = await Order.countDocuments({ user: req.user.userId });
+    orders = await Order.find({ user: req.user.userId })
+      .sort({
+        createdAt: -1,
+      })
+      .limit(perPage);
   } catch (err) {
     console.log(err);
     return next(err);
   }
 
-  res.json({ orders });
+  res.json({ orders, remainder: count - perPage });
+};
+
+exports.getMoreOrders = async (req, res, next) => {
+  const { page } = req.body;
+
+  const perPage = 3;
+  let orders, count;
+  try {
+    count = await Order.countDocuments({ user: req.user.userId });
+    orders = await Order.find({ user: req.user.userId })
+      .sort({
+        createdAt: -1,
+      })
+      .limit(perPage * (page + 1));
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ orders, remainder: count - (page + 1) * perPage });
 };
 
 exports.getOrderDetail = async (req, res, next) => {
