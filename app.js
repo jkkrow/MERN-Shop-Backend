@@ -1,5 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/db");
+const Stripe = require("stripe");
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const authRoute = require("./routes/auth-routes");
 const userRoute = require("./routes/user-routes");
@@ -34,6 +36,16 @@ app.use("/api/admin", adminRoute);
 app.get("/api/config/paypal", (req, res, next) =>
   res.json({ clientId: process.env.PAYPAL_CLIENT_ID })
 );
+
+// Stripe config
+app.get("/api/config/stripe", async (req, res, next) => {
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 1099,
+    currency: "usd",
+    metadata: { integration_check: "accept_a_payment" },
+  });
+  res.json({ client_secret: paymentIntent.client_secret });
+});
 
 app.use((req, res, next) => {
   throw new HttpError("Could not find this route", 404);
