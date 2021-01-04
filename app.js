@@ -1,8 +1,9 @@
 const express = require("express");
-const connectDB = require("./config/db");
-const Stripe = require("stripe");
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const cors = require("cors");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { v1: uuidv1 } = require("uuid");
 
+const connectDB = require("./config/db");
 const authRoute = require("./routes/auth-routes");
 const userRoute = require("./routes/user-routes");
 const adminRoute = require("./routes/admin-routes");
@@ -16,16 +17,7 @@ const app = express();
 
 app.use(express.json());
 app.use("/images", express.static("images"));
-
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
-  next();
-});
+app.use(cors());
 
 // Routes
 app.use("/api/auth", authRoute);
@@ -38,13 +30,27 @@ app.get("/api/config/paypal", (req, res, next) =>
 );
 
 // Stripe config
-app.get("/api/config/stripe", async (req, res, next) => {
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: 1099,
-    currency: "usd",
-    metadata: { integration_check: "accept_a_payment" },
+app.post("/api/config/stripe", async (req, res, next) => {
+  const { totalPrice, token } = req.body;
+
+  const idempotencyKey = uuidv1();
+
+  const customer = await stripe.customers.create({
+    email: token.email,
+    source: token.id,
   });
-  res.json({ client_secret: paymentIntent.client_secret });
+
+  const result = await stripe.charges.create(
+    {
+      amount: totalPrice * 100,
+      currency: "usd",
+      customer: customer.id,
+      receipt_email: token.email,
+    },
+    { idempotencyKey }
+  );
+
+  res.json({ result });
 });
 
 app.use((req, res, next) => {
