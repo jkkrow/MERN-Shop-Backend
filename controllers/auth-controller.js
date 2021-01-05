@@ -1,11 +1,14 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 const { v1: uuidv1 } = require("uuid");
 const { OAuth2Client } = require("google-auth-library");
 
 const User = require("../models/User");
 const HttpError = require("../models/HttpError");
+const { reset } = require("nodemon");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -138,6 +141,63 @@ exports.googleLogin = async (req, res, next) => {
   });
 };
 
-exports.newPassword = async (req, res, next) => {};
+exports.sendRecoveryEmail = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("Please enter valid inputs.", 422));
+  }
+
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(new HttpError("No User found with given E-mail!", 404));
+    }
+
+    const token = crypto.randomBytes(20).toString("hex");
+
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000;
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: `${process.env.HOST_EMAIL}`,
+        pass: `${process.env.HOST_PASSWORD}`,
+      },
+    });
+
+    const mailOptions = {
+      from: "MERN Shop",
+      to: `${user.email}`,
+      subject: "Link to Reset Password",
+      text: `Your are receiving this because you have requested the reset of the password for your account.\nPlease click the following link to complete the process within one hour.\n\n${process.env.CLIENT_URL}/reset-password/${token}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`,
+    };
+
+    await transporter.sendMail(mailOptions, (err) => {
+      if (err) {
+        console.log(err);
+        return next(err);
+      }
+    });
+
+  } catch (err) {
+    return next(new HttpError("Something went wrong, please try again.", 500));
+  }
+
+  res.json({ message: "Recovery Email sent." });
+};
+
+exports.resetPassword = (req, res, next) => {
+  const { resetPasswordToken } = req.query;
+
+  console.log(resetPasswordToken);
+
+  res.json({ message: resetPasswordToken });
+};
 
 exports.deleteAccount = async (req, res, next) => {};

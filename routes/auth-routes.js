@@ -26,4 +26,12 @@ router.post(
 
 router.post("/google-login", authController.googleLogin);
 
+router.post(
+  "/send-recovery-email",
+  [check("email").normalizeEmail().isEmail()],
+  authController.sendRecoveryEmail
+);
+
+router.get("/reset-password", authController.resetPassword);
+
 module.exports = router;
