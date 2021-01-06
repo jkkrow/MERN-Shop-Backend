@@ -184,20 +184,64 @@ exports.sendRecoveryEmail = async (req, res, next) => {
         return next(err);
       }
     });
-
   } catch (err) {
     return next(new HttpError("Something went wrong, please try again.", 500));
   }
 
-  res.json({ message: "Recovery Email sent." });
+  res.json({ message: "Recovery Email has sent." });
 };
 
-exports.resetPassword = (req, res, next) => {
+exports.resetPassword = async (req, res, next) => {
   const { resetPasswordToken } = req.query;
 
-  console.log(resetPasswordToken);
+  let user;
+  try {
+    user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
 
-  res.json({ message: resetPasswordToken });
+    if (!user) {
+      return next(
+        new HttpError("This recovery link is invalid or has expired.", 403)
+      );
+    }
+  } catch (err) {
+    return next(new HttpError("Server error! Please try again", 500));
+  }
+
+  res.json({ userId: user._id });
+};
+
+exports.updatePassword = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("Please enter valid inputs.", 422));
+  }
+
+  const { userId, password } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return next(new HttpError("User not found.", 404));
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+  } catch (err) {
+    return next(
+      new HttpError("Updating password failed, please try again.", 500)
+    );
+  }
+
+  res.json({ message: "Changed password successfully!" });
 };
 
 exports.deleteAccount = async (req, res, next) => {};

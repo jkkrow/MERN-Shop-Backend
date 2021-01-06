@@ -34,4 +34,10 @@ router.post(
 
 router.get("/reset-password", authController.resetPassword);
 
+router.patch(
+  "/update-password",
+  [check("password").isLength({ min: 7 })],
+  authController.updatePassword
+);
+
 module.exports = router;
