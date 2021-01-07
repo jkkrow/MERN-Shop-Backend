@@ -81,6 +81,7 @@ exports.login = async (req, res, next) => {
       userId: user._id,
       isAdmin: user.isAdmin,
       email: user.email,
+      name: user.name,
       image: user.image,
     },
   });
@@ -136,6 +137,7 @@ exports.googleLogin = async (req, res, next) => {
       userId: user._id,
       isAdmin: user.isAdmin,
       email: user.email,
+      name: user.name,
       image: user.image,
     },
   });
