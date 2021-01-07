@@ -253,11 +253,23 @@ exports.deleteAddress = async (req, res, next) => {
 // Order
 
 exports.getOrders = async (req, res, next) => {
+  const { period } = req.query;
+
   const perPage = 3;
   let orders;
   try {
-    count = await Order.countDocuments({ user: req.user.userId });
-    orders = await Order.find({ user: req.user.userId })
+    count = await Order.countDocuments({
+      user: req.user.userId,
+      createdAt: {
+        $gt: period,
+      },
+    });
+    orders = await Order.find({
+      user: req.user.userId,
+      createdAt: {
+        $gt: period,
+      },
+    })
       .sort({
         createdAt: -1,
       })
@@ -271,13 +283,24 @@ exports.getOrders = async (req, res, next) => {
 };
 
 exports.getMoreOrders = async (req, res, next) => {
+  const { period } = req.query;
   const { page } = req.body;
 
   const perPage = 3;
   let orders, count;
   try {
-    count = await Order.countDocuments({ user: req.user.userId });
-    orders = await Order.find({ user: req.user.userId })
+    count = await Order.countDocuments({
+      user: req.user.userId,
+      createdAt: {
+        $gt: period,
+      },
+    });
+    orders = await Order.find({
+      user: req.user.userId,
+      createdAt: {
+        $gt: period,
+      },
+    })
       .sort({
         createdAt: -1,
       })
