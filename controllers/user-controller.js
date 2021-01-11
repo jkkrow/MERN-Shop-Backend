@@ -1,3 +1,5 @@
+const bcrypt = require("bcrypt");
+
 const Product = require("../models/Product");
 const User = require("../models/User");
 const Order = require("../models/Order");
@@ -176,6 +178,43 @@ exports.startCheckout = async (req, res, next) => {
   }
 
   res.json({ message: "All Clear!" });
+};
+
+// Profile
+
+exports.changeProfile = async (req, res, next) => {
+  const { name, password } = req.body;
+  const image = req.file;
+
+  let user;
+  try {
+    user = await User.findById(req.user.userId);
+
+    if (name !== user.name) {
+      user.name = name;
+    }
+
+    if (password) {
+      if (password.length < 7) {
+        return next(new HttpError("New Password is too short!", 422));
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      user.password = hashedPassword;
+    }
+
+    if (image) {
+      user.image = process.env.SERVER_URL + "/" + image.path.replace("\\", "/");
+    }
+
+    await user.save();
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+
+  res.json({ user });
 };
 
 // Address

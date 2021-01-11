@@ -2,6 +2,7 @@ const express = require("express");
 
 const userController = require("../controllers/user-controller");
 const checkAuth = require("../middleware/check-auth");
+const fileUpload = require("../middleware/file-upload");
 
 const router = express.Router();
 
@@ -19,6 +20,13 @@ router.post("/add-to-cart", userController.addToCart);
 router.patch("/change-quantity", userController.changeQuantity);
 router.delete("/remove-from-cart/:productId", userController.removeFromCart);
 router.post("/start-checkout", userController.startCheckout);
+
+// Profile
+router.patch(
+  "/change-profile",
+  fileUpload.single("image"),
+  userController.changeProfile
+);
 
 // Address
 router.get("/addresses", userController.getAddresses);
