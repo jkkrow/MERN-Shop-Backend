@@ -1,3 +1,4 @@
+const fs = require("fs");
 const bcrypt = require("bcrypt");
 
 const Product = require("../models/Product");
@@ -205,6 +206,11 @@ exports.changeProfile = async (req, res, next) => {
     }
 
     if (image) {
+      if (user.image) {
+        const imagePath = user.image.split(process.env.SERVER_URL + "/")[1];
+        fs.unlink(imagePath, (err) => console.log(err));
+      }
+
       user.image = process.env.SERVER_URL + "/" + image.path.replace("\\", "/");
     }
 
