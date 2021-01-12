@@ -41,6 +41,13 @@ router.get("/order-detail/:orderId", userController.getOrderDetail);
 router.post("/create-order", userController.createOrder);
 
 // Review
-router.post("/review/:productId", userController.createReview);
+router.post("/review/:productId",(req, res, next) => {
+    fileUpload.array("images", 5)(req, res, (err) => {
+      if (err) {
+        return next(new HttpError("Maximum file number exceeded.", 500));
+      }
+      next();
+    });
+  }, userController.createReview);
 
 module.exports = router;

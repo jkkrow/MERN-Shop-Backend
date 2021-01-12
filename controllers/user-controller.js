@@ -427,6 +427,9 @@ exports.createOrder = async (req, res, next) => {
 exports.createReview = async (req, res, next) => {
   const { productId } = req.params;
   const { rating, comment } = req.body;
+  const images = req.files.map((image) => {
+    return process.env.SERVER_URL + "/" + image.path.replace("\\", "/");
+  });
 
   let product;
   try {
@@ -460,6 +463,7 @@ exports.createReview = async (req, res, next) => {
       user: req.user.userId,
       rating,
       comment,
+      images,
     };
 
     product.reviews.push(review);

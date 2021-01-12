@@ -8,7 +8,6 @@ const checkAdmin = require("../middleware/check-admin");
 const HttpError = require("../models/HttpError");
 
 const router = express.Router();
-const upload = fileUpload.array("images", 10);
 
 router.use(checkAuth);
 router.use(checkAdmin);
@@ -19,7 +18,7 @@ router.get("/products", adminController.getProducts);
 router.post(
   "/add-product",
   (req, res, next) => {
-    upload(req, res, (err) => {
+    fileUpload.array("images", 10)(req, res, (err) => {
       if (err) {
         return next(new HttpError("Maximum file number exceeded.", 500));
       }
