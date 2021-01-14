@@ -42,7 +42,7 @@ app.post("/api/config/stripe", async (req, res, next) => {
 
   const result = await stripe.charges.create(
     {
-      amount: totalPrice * 100,
+      amount: Math.round(totalPrice * 100),
       currency: "usd",
       customer: customer.id,
       receipt_email: token.email,
